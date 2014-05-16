@@ -13,7 +13,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     wlpdb.vm.network :private_network, ip: "10.10.10.5"
 
     wlpdb.vm.synced_folder ".", "/vagrant", :mount_options => ["dmode=777","fmode=777"]
-    wlpdb.vm.synced_folder "./software", "/software"
+    wlpdb.vm.synced_folder "~/software", "/software"
     #wlpdb.vm.synced_folder ".", "/vagrant", type: "nfs"
     #wlpdb.vm.synced_folder "/Users/edwin/software", "/software", type: "nfs"
 
@@ -47,7 +47,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     wlp.vm.hostname = "wlp.example.com"
 
     wlp.vm.synced_folder "."                    , "/vagrant", :mount_options => ["dmode=777","fmode=777"]
-    wlp.vm.synced_folder "./software", "/software"
+    wlp.vm.synced_folder "~/software", "/software"
 
 
     wlp.vm.network :private_network, ip: "10.10.10.20"
