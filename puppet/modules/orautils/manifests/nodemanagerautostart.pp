@@ -10,7 +10,7 @@ define orautils::nodemanagerautostart
   $domain          = undef,
   $logDir          = undef,
   $jsseEnabled     = false,
-) 
+)
 {
   if ( $version == "1111" or $version == "1211" or $version == "1036" ) {
     $nodeMgrPath    = "${wlHome}/common/nodemanager"
@@ -36,6 +36,7 @@ define orautils::nodemanagerautostart
   } else {
     $nodeMgrPath    = "${wlHome}/common/nodemanager"
     $nodeMgrBinPath = "${wlHome}/server/bin"
+    $scriptName = "nodemanager_${$version}"
 
     if $logDir == undef {
       $nodeMgrLckFile = "${nodeMgrPath}/nodemanager.log.lck"
@@ -49,7 +50,7 @@ define orautils::nodemanagerautostart
 
       $execPath        = '/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:'
 
-      Exec { 
+      Exec {
         path      => $execPath,
         logoutput => true,
       }

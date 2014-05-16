@@ -1,0 +1,109 @@
+# Example Usage:
+# create jdbc datasource
+# wls::wlstexec {'cgDataSource':
+#    script        => 'createJdbcDatasourceOffline.py',
+#    params        => [
+#                     "domainPath                  = '${wlsDomainsPath}/${wlsDomainName}'",
+#                     "dsName                      = 'cgDataSource'",
+#                     "jdbcDatasourceTargets       = 'AdminServer'",
+#                     "dsDriverName                = 'oracle.jdbc.OracleDriver'",
+#                     "dsURL                       = 'jdbc:oracle:thin:@wcdb.example.com:1521/test.oracle.com'",
+#                     "dsUserName                  = 'weblogic'",
+#                     "dsPassword                  = 'weblogic'",
+#                     "datasourceTargetType        = 'Server'",
+#                     "globalTransactionsProtocol  = 'EmulateTwoPhaseCommit'",
+#                     "dsJndiNames                 = ['cgDataSource']",
+#                     "dsConnectionPoolParams      = {'InitialCapacity': 5, 'MaxCapacity': 20, 'TestConnectionsOnReserve': true, 'TestTableName': 'SQL SELECT 1 FROM DUAL'}"
+#                     ],
+# }
+
+# Initialise here and override using the params array from puppet.
+extraProperties           = {}
+dsJndiNames               = []
+dsConnectionPoolParams    = {}
+
+# Define the parameters from the puppet 'params' array.
+<% @params.each do |param| -%>
+<%= param %>
+<% end -%>
+
+print "Datasource: " + dsName
+datasourceTargets=String(jdbcDatasourceTargets).split(",")
+
+for key, value in extraProperties.items():
+  print "\t%s = %s" % (key, value)
+
+for datasourceTarget in datasourceTargets:
+  print "Datasource Target",datasourceTarget
+
+print "dsDriverName " +dsDriverName
+print "dsUserName " +dsUserName
+
+
+def findMBean(v_pattern):
+  return ls(returnMap='true').contains(v_pattern)==true
+
+
+def create_JDBCSystemResource(wlsDomainPath, beanName, url, driver, user, pwd, gtProtocol, jndiNames, poolParams):
+  cd('/')
+  delete(beanName, 'JDBCSystemResource')
+  create(beanName, 'JDBCSystemResource')
+
+  print "Create JDBCSystemResource: " + beanName
+  cd('/JDBCSystemResource/' + beanName)
+  set('Target','AdminServer')
+  cd('/JDBCSystemResource/' + beanName + '/JdbcResource/' + beanName)
+  set('Name', beanName)
+
+  if not findMBean('JDBCDataSourceParams'):
+    create(beanName+'Params','JDBCDataSourceParams')
+
+  cd("/JDBCSystemResources/" + beanName + "/JdbcResource/" + beanName + "/JDBCDataSourceParams/NO_NAME_0")
+  set("GlobalTransactionsProtocol", gtProtocol)
+  set('JNDINames', jndiNames)
+
+  cd('/JDBCSystemResource/' + beanName + '/JdbcResource/' + beanName)
+
+  if not findMBean('JDBCDriverParams'):
+    create(beanName+'DriverParams','JDBCDriverParams')
+
+  cd('/JDBCSystemResource/' + beanName + '/JdbcResource/' + beanName + '/JDBCDriverParams/NO_NAME_0')
+  set('URL', url)
+  set('DriverName', driver)
+  set('PasswordEncrypted', encrypt(pwd, wlsDomainPath))
+
+
+  cd('/JDBCSystemResource/' + beanName + '/JdbcResource/' + beanName)
+  if not findMBean('JDBCConnectionPoolParams'):
+    create(beanName+'ConnectionPoolParams','JDBCConnectionPoolParams')
+
+  cd('/JDBCSystemResource/'+beanName+'/JdbcResource/'+beanName+'/JDBCConnectionPoolParams/NO_NAME_0')
+  for key, value in poolParams.items():
+    print "\t%s = %s" % (key, value)
+    set(key, value)
+
+  cd("/JDBCSystemResources/" + beanName + "/JdbcResource/" + beanName + "/JDBCDriverParams/NO_NAME_0")
+  if not findMBean('Properties'):
+    create(beanName+'Properties','Properties')
+
+  cd("/JDBCSystemResources/" + beanName + "/JdbcResource/" + beanName + "/JDBCDriverParams/NO_NAME_0/Properties/NO_NAME_0")
+  create('user','Property')
+  cd("/JDBCSystemResources/" + beanName + "/JdbcResource/" + beanName + "/JDBCDriverParams/NO_NAME_0/Properties/NO_NAME_0/Property/user")
+  set('Value', user)
+  for key, value in extraProperties.items():
+    cd("/JDBCSystemResources/" + beanName + "/JdbcResource/" + beanName + "/JDBCDriverParams/NO_NAME_0/Properties/NO_NAME_0")
+    create(key,'Property')
+    cd("/JDBCSystemResources/" + beanName + "/JdbcResource/" + beanName + "/JDBCDriverParams/NO_NAME_0/Properties/NO_NAME_0/Property/"+key)
+    set('Value', value)
+
+
+
+try:
+  # readDomain('/opt/oracle/middleware11g/user_projects/domains/portal_domain')
+  readDomain(domainPath)
+  print('Creating new DB Configurations...')
+  create_JDBCSystemResource(domainPath, dsName, dsURL, dsDriverName, dsUserName, dsPassword, globalTransactionsProtocol, dsJndiNames, dsConnectionPoolParams)
+  updateDomain()
+  closeDomain()
+except:
+  print "Unexpected error:", sys.exc_info()[0]

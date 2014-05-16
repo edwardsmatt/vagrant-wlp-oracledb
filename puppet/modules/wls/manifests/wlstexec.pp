@@ -76,6 +76,7 @@ define wls::wlstexec ($version        = '1111',
                       $params         = undef,
                       $downloadDir    = '/install',
                       $logOutput      = false,
+                      $templateDir    = 'wls/wlst'
                       ) {
 
    # if these params are empty always continue
@@ -98,10 +99,10 @@ define wls::wlstexec ($version        = '1111',
    }
 
   # use userConfigStore for the connect
-  if $password == undef {    
+  if $password == undef {
     $useStoreConfig = true
   } else {
-    # override if config and key files are provided 
+    # override if config and key files are provided
     if($userConfigFile != undef and $userKeyFile != undef) {
       $useStoreConfig = true
     }
@@ -178,7 +179,7 @@ if ( $continue ) {
    # the py script used by the wlst
    file { "${path}/${title}${script}":
       path    => "${path}/${title}${script}",
-      content => template("wls/wlst/${script}.erb"),
+      content => template("${templateDir}/${script}.erb"),
    }
 
    case $operatingsystem {

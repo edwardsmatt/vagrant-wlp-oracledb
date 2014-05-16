@@ -1,0 +1,49 @@
+#----------------------------------------------------------------------
+# Properties used by: create_db.cmd and/or create_db.sh
+#----------------------------------------------------------------------
+# Set database= to a valid database.
+# Valid databases are:  pointbase, mysql, oracle, sql_server, sybase and db2
+#----------------------------------------------------------------------
+database=<%= @wlp_db %>
+
+#----------------------------------------------------------------------
+#  For the database specified above, fill in the appropriate @DB_USER@
+#  and @DB_PASSWORD@ settings and complete the url parameters by
+#  setting:  @DB_HOST@, @DB_PORT@, @DB_NAME@
+#  Note: @DB_NAME@ for sql_server and sybase is often the same as user
+#
+#  To use an encrypted password for any database use:
+#    weblogic.security.Encrypt to obtain the encrypted password.
+#  The saltFile used to encrypt/decrypt passwords is the domains
+#    <DOMAIN_HOME>/security/SerializedSystemIni.dat saltFile.
+#
+#----------------------------------------------------------------------
+<%= @wlp_db %>.user=<%= @wlp_db_user %>
+<%= @wlp_db %>.password=<%= @wlp_db_pwd %>
+<%= @wlp_db %>.driver=<%= @wlp_db_driver %>
+<%= @wlp_db %>.url=<%= @wlp_db_url %>
+#----------------------------------------------------------------------
+# logFile= the file that output will be logged to
+#----------------------------------------------------------------------
+logFile=create_db.log
+#----------------------------------------------------------------------
+# files= points to the jdbc.index files, which point to the .sql
+#   files to be executed by create_db
+#----------------------------------------------------------------------
+files=${env.WLPORTAL_HOME}/p13n/db/${database}/jdbc_index/jdbc.index,${env.WLPORTAL_HOME}/content-mgmt/db/${database}/jdbc_index/jdbc.index,${env.WLPORTAL_HOME}/portal/db/${database}/jdbc_index/jdbc.index
+
+#----------------------------------------------------------------------
+# Set debug=Y to write debug info for the sql statements executed
+#----------------------------------------------------------------------
+debug=N
+#----------------------------------------------------------------------
+# Set noexec=Y to prevent the execution of sql statements against
+#  the specified database
+#----------------------------------------------------------------------
+noexec=N
+#----------------------------------------------------------------------
+# Specify a file to write sql statements to.  SQLOutputFile is often
+#  used in conjunction with noexec=Y to concatenate the ddl to a single
+#  file for later execution.
+#----------------------------------------------------------------------
+SQLOutputFile=
